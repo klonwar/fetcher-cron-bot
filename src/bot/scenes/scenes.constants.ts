@@ -1,3 +1,3 @@
 export enum BotScene {
-  PERSON_ID = 'personId',
+  REGISTRATION = 'registration',
 }

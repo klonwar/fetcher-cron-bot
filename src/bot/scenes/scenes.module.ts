@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { PersonIdScene } from './user/person-id.scene';
+import { RegistrationScene } from './user/registration.scene';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../model/user/user.model';
-import { Person } from '../../model/person/person.model';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Person])],
-  providers: [PersonIdScene],
+  imports: [TypeOrmModule.forFeature([User])],
+  providers: [RegistrationScene],
 })
 export class ScenesModule {}

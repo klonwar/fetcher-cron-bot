@@ -1,44 +1,54 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { ListService } from '../list/list.service';
 import { BotService } from '../bot/bot.service';
 import { ConfigService } from '@nestjs/config';
 import { CronJob } from 'cron';
-import { CronJobNames } from './cron.constants';
+import { PageJob } from '../model/page-job/page-job.model';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { PageService } from '../page/page.service';
 
 @Injectable()
 export class CronService implements OnModuleInit {
   private readonly logger = new Logger(CronService.name);
-  private jobs: Record<CronJobNames, CronJob> = {
-    [CronJobNames.UPDATE]: new CronJob(
-      this.configService.get<string>('CRON'),
-      () => this.update(),
-    ),
-  };
 
   constructor(
     private configService: ConfigService,
     private schedulerRegistry: SchedulerRegistry,
-    private listService: ListService,
     private botService: BotService,
-  ) {
-    this.update();
+    private pageService: PageService,
+    @InjectRepository(PageJob)
+    private pageJobRepository: Repository<PageJob>,
+  ) {}
+
+  async onModuleInit() {
+    const pageJobs = await this.pageJobRepository.find();
+    await this.start(...pageJobs);
   }
 
-  onModuleInit() {
-    Object.entries(this.jobs).forEach(([name, job]) => {
-      this.schedulerRegistry.addCronJob(name, job);
-      job.start();
-    });
-  }
-
-  public async update() {
-    const { list, updated } = await this.listService.update();
-    if (updated) {
-      await this.botService.notify(list);
+  async start(...pageJobs: PageJob[]) {
+    for (const pageJob of pageJobs) {
+      await this.tick(pageJob);
+      const cronJob = new CronJob(this.configService.get<string>('CRON'), () =>
+        this.tick(pageJob),
+      );
+      this.schedulerRegistry.addCronJob(`` + pageJob.id, cronJob);
+      cronJob.start();
     }
-    this.logger.verbose(
-      `Updated. Cron configuration: ${this.configService.get<string>('CRON')}`,
-    );
+    this.logger.log(`Started ${pageJobs.length} jobs`);
+  }
+
+  stop(...pageJobs: PageJob[]) {
+    pageJobs.forEach((pageJob) => {
+      this.schedulerRegistry.deleteCronJob(`` + pageJob.id);
+    });
+    this.logger.log(`Stopped ${pageJobs.length} jobs`);
+  }
+
+  private async tick(pageJob: PageJob) {
+    const changed = await this.pageService.check(pageJob);
+    if (changed) {
+      await this.botService.notify(pageJob);
+    }
   }
 }

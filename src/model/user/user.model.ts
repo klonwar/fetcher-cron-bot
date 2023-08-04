@@ -1,12 +1,5 @@
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryColumn,
-} from 'typeorm';
-import { Person } from '../person/person.model';
+import { BaseEntity, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { PageJob } from '../page-job/page-job.model';
 
 @Entity()
 export class User extends BaseEntity {
@@ -18,9 +11,8 @@ export class User extends BaseEntity {
   })
   username?: string;
 
-  @OneToOne(() => Person, {
-    eager: true,
+  @OneToMany(() => PageJob, (page) => page.user, {
+    lazy: true,
   })
-  @JoinColumn()
-  person: Person;
+  pages: PageJob[];
 }

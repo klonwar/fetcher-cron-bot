@@ -2,14 +2,14 @@ import { BotCommand } from 'typegram';
 
 export enum AvailableCommands {
   START = 'start',
-  CHECK = 'check',
-  TOP = 'top',
+  CREATE = 'create',
+  DELETE = 'delete',
 }
 
 export const BotCommandsDescriptions: Record<AvailableCommands, string> = {
-  [AvailableCommands.START]: 'Set/Change your ID',
-  [AvailableCommands.CHECK]: 'Check updates and get info about you',
-  [AvailableCommands.TOP]: 'Get top of bot users',
+  [AvailableCommands.START]: 'Start an account',
+  [AvailableCommands.CREATE]: 'Start a job',
+  [AvailableCommands.DELETE]: 'Delete a job',
 };
 
 export const myCommands: BotCommand[] = Object.entries(
