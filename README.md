@@ -1,7 +1,6 @@
 ## Description
 
-Telegram bot that notifies about changes in xml competition lists changes for the [Lestech](https://vgltu.ru/)
-university.
+Telegram bot that notifies about changes on any page
 
 ## Installation
 
